@@ -6,7 +6,7 @@ Pacing plan for the marathon du beaujolais 2025
 
 ### Current simulation parameters:
 * mean degustation time per ravito : 5min
-* mean degustation quantity per ravito : 60 cL (half a glass)
+* mean degustation quantity per ravito : 60 mL (half a glass)
 * body mass : 80kg
 
 ## Strategy 1 : Positive split
