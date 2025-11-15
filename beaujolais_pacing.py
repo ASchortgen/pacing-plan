@@ -10,7 +10,7 @@ ravito_coordinnates = np.array([4,10,15,16.5,17.5,21.1,24,27,30.1,34,37,39,41,42
 N_ravito = len(ravito_coordinnates) # Number of enjoyed ravitos
 T_ravito = 5 # mean time spent per ravito [min]
 V_ravito = 60 # mean consumption (degustation) per ravition [mL]
-bw = 80 #body weight
+bw = 65 #body weight
 
 
 ###############################################
@@ -29,10 +29,25 @@ def elapsed_time(list_v):
         res_T.append(res_T[-1] + dT)
     return np.array(res_T)
 
+
 def alcoolemie(t, V):
     b = 1/30
     a = b * np.exp(1) * V * 0.12 * 0.8 / (0.7 * bw)
     return float(a * t * np.exp(-b * t))
+
+def absorption(t, V):
+    b = 1/30 * 5
+    a = V * 0.12 * 0.8 / (0.7 * bw)
+    return float(a * (1 - np.exp(-b * t)))
+
+def elimination_lineaire(t):
+    alpha = 0.1 / 60
+    return float(-alpha*t)
+
+def elimination_exp(t, V):
+    b = 1/30 * 5
+    a = V * 0.12 * 0.8 / (0.7 * bw)
+    return float(a * (1 - np.exp(-b * t)))
 
 def effect_one_ravito(t_ravito, time, V):
     return np.array([alcoolemie(t-t_ravito, V) if t >= t_ravito else 0 for t in time])
@@ -52,10 +67,12 @@ def alcohol_level(ravito_coordinnates, list_v, V_ravito):
     t_ref = 0
     res_C_ref = 0
     for i, t_i in enumerate(running_time):
-        if X[i] in ravito_coordinnates: # reset alcohol computation with new offset at each ravito
-            t_ref = t_i
-            res_C_ref = res_C[i-1]
-        res_C[i] = alcoolemie(t_i-t_ref, V_ravito)+res_C_ref
+        if X[i] >= ravito_coordinnates[0]:
+            if X[i] in ravito_coordinnates: # reset alcohol computation with new offset at each ravito
+                t_ref = t_i
+                res_C_ref = res_C[i-1]
+            #res_C[i] = alcoolemie(t_i-t_ref, V_ravito)+res_C_ref
+            res_C[i] = res_C_ref + absorption(t_i-t_ref, V_ravito) + elimination_lineaire(t_i-t_ref)
     return res_C
 
     
@@ -119,6 +136,7 @@ def plot_pacing(list_v, name="pacing_plan"):
     fig.tight_layout()
     axs[0,1].set_title(name,fontsize='xx-large')
     plt.savefig(name+'.png', dpi=300)
+    #plt.show()
 
 ###############################################
 ################# STRATEGY 1 ##################
